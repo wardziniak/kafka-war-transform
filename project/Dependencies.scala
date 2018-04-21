@@ -12,5 +12,6 @@ object Dependencies {
 
   val confluentJdbcConnector: ModuleID = "io.confluent" % "kafka-connect-jdbc" % "4.0.0"
 
+  val scalaTest: ModuleID = "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 }

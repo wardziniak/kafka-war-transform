@@ -4,12 +4,14 @@ import java.util
 import java.util.Map
 
 import org.apache.kafka.common.cache.{Cache, LRUCache, SynchronizedCache}
-import org.apache.kafka.common.config.ConfigDef
+import org.apache.kafka.common.config.{ConfigDef, ConfigException}
 import org.apache.kafka.connect.connector.ConnectRecord
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
+import org.apache.kafka.connect.errors.DataException
 import org.apache.kafka.connect.transforms.Transformation
 import org.apache.kafka.connect.transforms.util.Requirements.requireStruct
 import org.apache.kafka.connect.transforms.util.SchemaUtil
+
 import scala.collection.JavaConverters._
 
 /**
@@ -26,13 +28,22 @@ abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
   }
 
   override def config(): ConfigDef = {
-    schemaUpdateCache = new SynchronizedCache[Schema, Schema](new LRUCache[Schema, Schema](16))
     new ConfigDef()
   }
 
-  override def close(): Unit = ???
+  override def close(): Unit = {
+    schemaUpdateCache = null
+  }
 
-  override def configure(configs: util.Map[String, _]): Unit = ???
+  override def configure(configs: util.Map[String, _]): Unit = {
+    from = configs.asScala
+      .get(CloneField.FromField)
+      .map(_.toString)
+      .getOrElse(throw new ConfigException(s"Property ${CloneField.FromField} must be set"))
+    to = configs.asScala.get(CloneField.ToFields).map(_.toString).map(CloneField.parseTo)
+      .getOrElse(throw new ConfigException(s"Property ${CloneField.ToFields} must be set"))
+    schemaUpdateCache = new SynchronizedCache[Schema, Schema](new LRUCache[Schema, Schema](16))
+  }
 
 
   private def applySchemaless (record: R): R = {
@@ -40,9 +51,6 @@ abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
   }
 
   private def applyWithSchema(record: R): R = {
-    // Insure that fields (to) with passed names, doesn't exists already
-    // Insure that field (from) with passed name, exists
-    // If not add field with ne
     val value = requireStruct(operatingValue(record), "PURPOSE")
 
     var updatedSchema = schemaUpdateCache.get(value.schema)
@@ -50,16 +58,44 @@ abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
       updatedSchema = makeUpdatedSchema(value.schema)
       schemaUpdateCache.put(value.schema, updatedSchema)
     }
-
     val updatedValue = new Struct(updatedSchema)
-    val resultValue = value.schema().fields().asScala.foldLeft(updatedValue)((accValue, field) => accValue.put(field.name(), field.schema()))
-    newRecord(record, updatedSchema, resultValue)
+
+    value.schema().fields().asScala.foreach(field => updatedValue.put(field.name(), value.get(field)))
+    to.foreach(fieldName => updatedValue.put(fieldName, value.get(from)))
+    newRecord(record, updatedSchema, updatedValue)
   }
 
   protected def makeUpdatedSchema(schema: Schema): Schema = {
+    validateSchema(schema)
     val builder = SchemaUtil.copySchemaBasics(schema, SchemaBuilder.struct)
-    val resultBuilder = to.foldLeft(builder)((b, toFieldName) => b.field(toFieldName, schema.field(from).schema()))
+    val builderWithSchema = schema.fields.asScala.foldLeft(builder)((b, field) => b.field(field.name(), field.schema()))
+    val resultBuilder = to.foldLeft(builderWithSchema)((b, toFieldName) => b.field(toFieldName, schema.field(from).schema()))
     resultBuilder.build
   }
 
+  private def validateSchema(schema: Schema): Unit = {
+    val fromNotExists = !schema.fields().asScala.map(_.name()).contains(from)
+    val oneOfToFieldsAlreadyExists = schema.fields().asScala.map(_.name()).exists(to.contains)
+    if (fromNotExists)
+      throw new DataException(s"Cant find from field in schema [$from]")
+    if (oneOfToFieldsAlreadyExists)
+      throw new DataException(s"Schema already contains one of to fields [$to]")
+  }
+
+}
+
+object CloneField {
+
+  val FromField = "clone.from"
+  val ToFields = "clone.to"
+
+  val ToFieldsDelimiter = ","
+
+  def parseTo(toProperty: String): List[String] = {
+    toProperty.split(ToFieldsDelimiter).toList
+  }
+
+  class CloneFieldValue[R <: ConnectRecord[R]]  extends CloneField[R] with ValueGenericTransform[R]
+
+  class CloneFieldKey[R <: ConnectRecord[R]]  extends CloneField[R] with KeyGenericTransform[R]
 }
