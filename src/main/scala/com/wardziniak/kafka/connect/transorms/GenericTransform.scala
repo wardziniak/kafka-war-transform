@@ -1,9 +1,8 @@
 package com.wardziniak.kafka.connect.transorms
 
 import org.apache.kafka.connect.connector.ConnectRecord
-import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Timestamp}
+import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.transforms.Transformation
-import org.apache.kafka.connect.transforms.util.SchemaUtil
 
 trait GenericTransform[R <: ConnectRecord[R]] extends Transformation[R]{
 
@@ -16,21 +15,21 @@ trait GenericTransform[R <: ConnectRecord[R]] extends Transformation[R]{
 }
 
 trait ValueGenericTransform[R <: ConnectRecord[R]] extends GenericTransform[R]{
-  override protected def operatingSchema(record: R) = record.valueSchema()
+  override protected def operatingSchema(record: R): Schema = record.valueSchema()
 
-  override protected def operatingValue(record: R) = record.value()
+  override protected def operatingValue(record: R): AnyRef = record.value()
 
-  override protected def newRecord(record: R, updatedSchema: Schema, updatedValue: Any) = {
+  override protected def newRecord(record: R, updatedSchema: Schema, updatedValue: Any): R = {
     record.newRecord(record.topic, record.kafkaPartition, record.keySchema(), record.key(), updatedSchema, updatedValue, record.timestamp)
   }
 }
 
 trait KeyGenericTransform[R <: ConnectRecord[R]] extends GenericTransform[R]{
-  override protected def operatingSchema(record: R) = record.keySchema()
+  override protected def operatingSchema(record: R): Schema = record.keySchema()
 
-  override protected def operatingValue(record: R) = record.key()
+  override protected def operatingValue(record: R): AnyRef = record.key()
 
-  override protected def newRecord(record: R, updatedSchema: Schema, updatedValue: Any) = {
+  override protected def newRecord(record: R, updatedSchema: Schema, updatedValue: Any): R = {
     record.newRecord(record.topic, record.kafkaPartition, updatedSchema, updatedValue, record.valueSchema, record.value, record.timestamp)
   }
 }

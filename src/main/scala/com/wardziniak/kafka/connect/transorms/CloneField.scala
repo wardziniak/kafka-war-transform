@@ -1,14 +1,13 @@
 package com.wardziniak.kafka.connect.transorms
 
 import java.util
-import java.util.Map
+import java.util.{Collections => JCollections}
 
 import org.apache.kafka.common.cache.{Cache, LRUCache, SynchronizedCache}
 import org.apache.kafka.common.config.{ConfigDef, ConfigException}
 import org.apache.kafka.connect.connector.ConnectRecord
 import org.apache.kafka.connect.data.{Schema, SchemaBuilder, Struct}
 import org.apache.kafka.connect.errors.DataException
-import org.apache.kafka.connect.transforms.Transformation
 import org.apache.kafka.connect.transforms.util.Requirements.requireStruct
 import org.apache.kafka.connect.transforms.util.SchemaUtil
 
@@ -19,6 +18,16 @@ import scala.collection.JavaConverters._
   */
 abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
 
+  val OVERVIEW_DOC: String = "Filter or rename fields." +
+    "<p/>Use the concrete transformation type designed for the record key (<code>" + classOf[CloneField.Key[_ <: ConnectRecord[_]]].getName + "</code>) " +
+    "or value (<code>" + classOf[CloneField.Value[_ <: ConnectRecord[_]]].getName + "</code>)."
+
+  val CONFIG_DEF: ConfigDef = new ConfigDef().
+    define(CloneField.FromField, ConfigDef.Type.STRING, Nil,
+      ConfigDef.Importance.MEDIUM, "Field that will be cloned").
+    define(CloneField.ToFields, ConfigDef.Type.LIST, JCollections.emptyList,
+      ConfigDef.Importance.MEDIUM, "Fields that will have same value and schema as CloneField.FromField")
+
   protected var to: Seq[String] = _
   protected var from: String = _
   protected var schemaUpdateCache: Cache[Schema, Schema] = _
@@ -28,7 +37,7 @@ abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
   }
 
   override def config(): ConfigDef = {
-    new ConfigDef()
+    CONFIG_DEF
   }
 
   override def close(): Unit = {
@@ -95,7 +104,7 @@ object CloneField {
     toProperty.split(ToFieldsDelimiter).toList
   }
 
-  class CloneFieldValue[R <: ConnectRecord[R]]  extends CloneField[R] with ValueGenericTransform[R]
+  class Value[R <: ConnectRecord[R]]  extends CloneField[R] with ValueGenericTransform[R]
 
-  class CloneFieldKey[R <: ConnectRecord[R]]  extends CloneField[R] with KeyGenericTransform[R]
+  class Key[R <: ConnectRecord[R]]  extends CloneField[R] with KeyGenericTransform[R]
 }

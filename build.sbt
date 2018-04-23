@@ -9,6 +9,11 @@ resolvers += "Confluent" at "http://packages.confluent.io/maven/"
 libraryDependencies ++= Seq(
   Dependencies.kafkaConnectTransforms,
   Dependencies.kafkaConnectApi,
-  Dependencies.confluentJdbcConnector,
+//  Dependencies.confluentJdbcConnector,
   Dependencies.scalaTest
+//  Dependencies.avro4sCore,
+//  Dependencies.connectJson,
+//  Dependencies.kafkaTools,
+//  Dependencies.kafkaAvroSerializer,
+//  Dependencies.kafkaConnectHdfs
 )

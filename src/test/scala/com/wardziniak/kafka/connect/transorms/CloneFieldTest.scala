@@ -34,7 +34,7 @@ class CloneFieldTest
 
 
   "CloneField Transforms" should s"throw exception if ${CloneField.ToFields} is not set" in {
-    val cloneFieldValueTransform = new CloneField.CloneFieldValue[SinkRecord]()
+    val cloneFieldValueTransform = new CloneField.Value[SinkRecord]()
     val props = new JHashMap[String, AnyRef]
     props.put("clone.from", "foo")
 
@@ -45,7 +45,7 @@ class CloneFieldTest
   }
 
   "CloneField Transforms" should s"throw exception if ${CloneField.FromField} is not set" in {
-    val cloneFieldValueTransform = new CloneField.CloneFieldValue[SinkRecord]()
+    val cloneFieldValueTransform = new CloneField.Value[SinkRecord]()
     val props = new JHashMap[String, AnyRef]
     props.put("clone.to", "some1,some2")
 
@@ -56,7 +56,7 @@ class CloneFieldTest
   }
 
   "CloneField Transforms" should s"throw exception if value of ${CloneField.FromField} is not present in schema" in {
-    val cloneFieldValueTransform = new CloneField.CloneFieldValue[SinkRecord]()
+    val cloneFieldValueTransform = new CloneField.Value[SinkRecord]()
 
     val record = new SinkRecord("test", 0, null, null, schema, valueObject, 0)
     val props = new JHashMap[String, AnyRef]
@@ -71,7 +71,7 @@ class CloneFieldTest
   }
 
   "CloneField Transforms" should s"throw exception if value of ${CloneField.ToFields} already is in schema" in {
-    val cloneFieldValueTransform = new CloneField.CloneFieldValue[SinkRecord]()
+    val cloneFieldValueTransform = new CloneField.Value[SinkRecord]()
 
     val record = new SinkRecord("test", 0, null, null, schema, valueObject, 0)
     val props = new JHashMap[String, AnyRef]
@@ -86,7 +86,7 @@ class CloneFieldTest
   }
 
   "CloneField Transforms" should " copy value and schema of existing field" in {
-    val cloneFieldValueTransform = new CloneField.CloneFieldValue[SinkRecord]()
+    val cloneFieldValueTransform = new CloneField.Value[SinkRecord]()
 
     val record = new SinkRecord("test", 0, null, null, schema, valueObject, 0)
     val props = new JHashMap[String, AnyRef]
