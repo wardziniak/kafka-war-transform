@@ -1,4 +1,4 @@
-package com.wardziniak.kafka.connect.transorms
+package com.wardziniak.kafka.connect.transforms
 
 import java.util
 

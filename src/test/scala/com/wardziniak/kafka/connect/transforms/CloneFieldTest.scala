@@ -1,4 +1,4 @@
-package com.wardziniak.kafka.connect.transorms
+package com.wardziniak.kafka.connect.transforms
 
 import org.apache.kafka.connect.sink.SinkRecord
 import org.scalatest.{FlatSpec, Matchers, MustMatchers}

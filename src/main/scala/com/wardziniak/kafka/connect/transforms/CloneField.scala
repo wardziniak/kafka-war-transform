@@ -1,4 +1,4 @@
-package com.wardziniak.kafka.connect.transorms
+package com.wardziniak.kafka.connect.transforms
 
 import java.util
 import java.util.{Collections => JCollections}
@@ -27,6 +27,8 @@ abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
       ConfigDef.Importance.MEDIUM, "Field that will be cloned").
     define(CloneField.ToFields, ConfigDef.Type.LIST, JCollections.emptyList,
       ConfigDef.Importance.MEDIUM, "Fields that will have same value and schema as CloneField.FromField")
+
+  private val PURPOSE = "field cloning"
 
   protected var to: Seq[String] = _
   protected var from: String = _
@@ -60,7 +62,7 @@ abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
   }
 
   private def applyWithSchema(record: R): R = {
-    val value = requireStruct(operatingValue(record), "PURPOSE")
+    val value = requireStruct(operatingValue(record), PURPOSE)
 
     var updatedSchema = schemaUpdateCache.get(value.schema)
     if (updatedSchema == null) {
