@@ -23,7 +23,7 @@ abstract class CloneField[R<: ConnectRecord[R]] extends GenericTransform[R] {
     "or value (<code>" + classOf[CloneField.Value[_ <: ConnectRecord[_]]].getName + "</code>)."
 
   val CONFIG_DEF: ConfigDef = new ConfigDef().
-    define(CloneField.FromField, ConfigDef.Type.STRING, Nil,
+    define(CloneField.FromField, ConfigDef.Type.STRING, ConfigDef.NO_DEFAULT_VALUE,
       ConfigDef.Importance.MEDIUM, "Field that will be cloned").
     define(CloneField.ToFields, ConfigDef.Type.LIST, JCollections.emptyList,
       ConfigDef.Importance.MEDIUM, "Fields that will have same value and schema as CloneField.FromField")
