@@ -6,9 +6,9 @@ import sbt._
   */
 object Dependencies {
 
-  val kafkaConnectApi: ModuleID = "org.apache.kafka" % "connect-api" % "1.0.0"
+  val kafkaConnectApi: ModuleID = "org.apache.kafka" % "connect-api" %  Versions.Kafka
 
-  val kafkaConnectTransforms: ModuleID = "org.apache.kafka" % "connect-transforms" % "1.0.0"
+  val kafkaConnectTransforms: ModuleID = "org.apache.kafka" % "connect-transforms" % Versions.Kafka
 
   val confluentJdbcConnector: ModuleID = "io.confluent" % "kafka-connect-jdbc" % "4.0.0"
 
@@ -18,10 +18,12 @@ object Dependencies {
 
   val connectJson: ModuleID = "org.apache.kafka" % "connect-json" % "1.0.0"
 
-  val kafkaTools: ModuleID = "org.apache.kafka" % "kafka-tools" % "1.0.0"
+  val kafkaTools: ModuleID = "org.apache.kafka" % "kafka-tools" %  Versions.Kafka
 
   val kafkaAvroSerializer: ModuleID = "io.confluent" % "kafka-avro-serializer" % "4.0.0"
 
   val kafkaConnectHdfs: ModuleID = "io.confluent" % "kafka-connect-hdfs" % "4.0.0"
+
+  val kafkaConnectRuntime: ModuleID = "org.apache.kafka" % "connect-runtime" %  Versions.Kafka
 
 }
